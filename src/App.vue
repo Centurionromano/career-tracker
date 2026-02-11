@@ -1,18 +1,17 @@
-<template>
-  <header>
-    <nav>
-      <h1>CareerTracker</h1>
-    </nav>
-  </header>
+<script setup>
+import { RouterView } from 'vue-router'
+</script>
 
+<template>
   <RouterView />
 </template>
 
-<style scoped>
-/* Stilos*/
-header {
-  padding: 1rem;
-  background-color: #f4f4f4;
-  text-align: center;
+<style>
+/* Dejamos este bloque vacío o con estilos mínimos de transición.
+   Toda la configuración de fondo y fuentes ya está en main.css
+*/
+#app {
+  width: 100%;
+  min-height: 100vh;
 }
 </style>
