@@ -1,28 +1,43 @@
 <template>
-  <div class="card-glass">
+  <div class="card-glass" :class="{ 'rejected-glow': isRejected }">
     <div class="card-header">
-      <div class="company-icon">
-        {{ company.charAt(0).toUpperCase() }}
+      <div class="header-left">
+        <div class="company-icon">
+          {{ company.charAt(0).toUpperCase() }}
+        </div>
+        <div class="titles">
+          <h3 class="role-title">{{ title }}</h3>
+          <p class="company-name">{{ company }}</p>
+        </div>
       </div>
-      <div class="status-badge" :class="statusColor">
-        <span class="status-dot"></span>
-        {{ status }}
-      </div>
+      <button class="btn-more">⋮</button>
     </div>
 
-    <div class="card-body">
-      <h3 class="role-title">{{ title }}</h3>
-      <p class="company-name">{{ company }}</p>
+    <div class="stepper-container">
+      <div class="progress-track"></div>
+      <div class="progress-fill" :style="{ width: progressWidth, background: statusColor }"></div>
+      
+      <div class="steps-wrapper">
+        <div v-for="(step, index) in steps" :key="index" class="step-item">
+          <div class="step-dot" 
+               :class="{ 'active': currentStepIndex >= index, 'current': currentStepIndex === index }"
+               :style="currentStepIndex >= index ? { background: statusColor, borderColor: statusColor } : {}">
+            <span v-if="currentStepIndex > index">✓</span>
+          </div>
+          <span class="step-label" :class="{ 'active-label': currentStepIndex >= index }">{{ step }}</span>
+        </div>
+      </div>
     </div>
 
     <div class="card-footer">
+      <div class="footer-actions">
+        <button class="btn-action" title="Ver Notas/Feedback">
+          <span class="icon">📝</span>
+          <span class="text">Notas</span>
+        </button>
+      </div>
       <span class="posted-date">Hace 2 días</span>
-      <button class="btn-icon">
-        ➜
-      </button>
     </div>
-
-    <div class="hover-glow"></div>
   </div>
 </template>
 
@@ -35,135 +50,121 @@ const props = defineProps({
   status: { type: String, default: 'Enviada' }
 });
 
-// Lógica simple para colorear el estado
+// --- CAMBIO QUIRÚRGICO: 4 PASOS ---
+const steps = ['Enviada', 'Entrevista', 'Prueba', 'Oferta'];
+
+const isRejected = computed(() => props.status === 'Rechazada');
+
+const currentStepIndex = computed(() => {
+  if (isRejected.value) return 1; 
+  const idx = steps.indexOf(props.status);
+  return idx === -1 ? 0 : idx; 
+});
+
+const progressWidth = computed(() => {
+  if (isRejected.value) return '100%'; 
+  // Ajuste matemático para 4 pasos
+  const percent = (currentStepIndex.value / (steps.length - 1)) * 100;
+  return `${percent}%`;
+});
+
+// --- COLORES ACTUALIZADOS ---
 const statusColor = computed(() => {
-  const s = props.status.toLowerCase();
-  if (s.includes('entrevista')) return 'status-warning';
-  if (s.includes('oferta')) return 'status-success';
-  if (s.includes('rechazo')) return 'status-danger';
-  return 'status-neutral';
+  if (isRejected.value) return '#ef4444'; // Rojo (Rechazada)
+  if (props.status === 'Oferta') return '#10b981'; // Verde (Éxito)
+  if (props.status === 'Prueba') return '#06b6d4'; // Cyan (Nuevo estado - Tech Challenge)
+  if (props.status === 'Entrevista') return '#f59e0b'; // Naranja (Proceso)
+  return '#6366f1'; // Indigo (Inicio)
 });
 </script>
 
 <style scoped>
-/* 1. EL CONTENEDOR (La Tarjeta de Vidrio) */
+/* ESTILOS INTACTOS - SOLO SE ADAPTAN AUTOMÁTICAMENTE */
 .card-glass {
-  background: rgba(255, 255, 255, 0.03); /* Casi transparente */
-  border: 1px solid rgba(255, 255, 255, 0.1); /* Borde sutil */
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  backdrop-filter: blur(5px); /* Desenfoque del fondo */
+  display: flex; flex-direction: column; gap: 20px;
+  backdrop-filter: blur(5px);
 }
 
-/* Interacción: Al pasar el mouse, se eleva y brilla el borde */
 .card-glass:hover {
-  transform: translateY(-5px);
-  border-color: rgba(139, 92, 246, 0.5); /* Borde violeta neón */
-  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  transform: translateY(-4px);
   background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
-/* 2. HEADER */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-}
+.rejected-glow { border-color: rgba(239, 68, 68, 0.3); }
+
+/* HEADER */
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+.header-left { display: flex; gap: 12px; align-items: center; }
 
 .company-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px; height: 42px;
   background: linear-gradient(135deg, #1f2937, #111827);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  color: white;
-  font-size: 1.2rem;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: white; font-size: 1.1rem;
 }
 
-/* Badges de Estado (Etiquetas) */
-.status-badge {
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
-  text-transform: capitalize;
-  border: 1px solid transparent;
+.role-title { margin: 0; font-size: 1rem; font-weight: 700; color: white; }
+.company-name { margin: 2px 0 0 0; font-size: 0.85rem; color: #9ca3af; }
+.btn-more { background: transparent; border: none; color: #6b7280; font-size: 1.2rem; cursor: pointer; }
+
+/* STEPPER CONTAINER */
+.stepper-container { position: relative; padding: 10px 0; margin-top: 5px; }
+
+.progress-track {
+  position: absolute; top: 22px; left: 0; width: 100%; height: 2px;
+  background: rgba(255, 255, 255, 0.1); z-index: 1; border-radius: 2px;
 }
 
-.status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-/* Colores de los estados (Neón suave) */
-.status-neutral { background: rgba(255, 255, 255, 0.1); color: #9ca3af; border-color: rgba(255, 255, 255, 0.1); }
-.status-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3); } /* Amarillo */
-.status-success { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.3); } /* Verde */
-.status-danger  { background: rgba(239, 68, 68, 0.15);  color: #f87171; border-color: rgba(239, 68, 68, 0.3); } /* Rojo */
-
-/* 3. BODY */
-.role-title {
-  margin: 0 0 4px 0;
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #f3f4f6; /* Blanco casi puro */
-  line-height: 1.3;
+.progress-fill {
+  position: absolute; top: 22px; left: 0; height: 2px;
+  z-index: 2; border-radius: 2px; transition: width 0.5s ease, background 0.3s;
 }
 
-.company-name {
-  margin: 0;
-  font-size: 0.9rem;
-  color: #9ca3af; /* Gris medio */
+.steps-wrapper {
+  display: flex; justify-content: space-between; position: relative; z-index: 3;
 }
 
-/* 4. FOOTER */
+.step-item { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 1; }
+
+.step-dot {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: #1f2937;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.7rem; color: white;
+  transition: all 0.3s;
+}
+
+.step-label { font-size: 0.7rem; color: #6b7280; font-weight: 600; transition: color 0.3s; }
+.step-label.active-label { color: white; }
+
+/* FOOTER */
 .card-footer {
-  margin-top: auto; /* Empuja el footer al fondo */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.posted-date {
-  font-size: 0.75rem;
-  color: #6b7280;
+.btn-action {
+  background: rgba(255, 255, 255, 0.05);
+  border: none; padding: 6px 12px; border-radius: 6px;
+  display: flex; align-items: center; gap: 6px;
+  cursor: pointer; transition: background 0.2s;
 }
+.btn-action:hover { background: rgba(255, 255, 255, 0.1); }
+.btn-action .icon { font-size: 0.9rem; }
+.btn-action .text { font-size: 0.8rem; color: #d1d5db; font-weight: 500; }
 
-.btn-icon {
-  background: transparent;
-  border: none;
-  color: #6b7280;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: transform 0.2s, color 0.2s;
-  padding: 0;
-}
-
-.card-glass:hover .btn-icon {
-  color: #fff;
-  transform: translateX(3px); /* Pequeña animación de flecha */
-}
-
-/* Efecto visual extra */
-.hover-glow {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 40%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  pointer-events: none;
-}
-.card-glass:hover .hover-glow { opacity: 1; }
+.posted-date { font-size: 0.75rem; color: #6b7280; }
 </style>
