@@ -1,13 +1,14 @@
 <template>
   <div class="login-container">
     <div class="login-glass">
+      
       <div class="brand login-brand">
         <img :src="logoImg" alt="Logo" class="app-logo-lg" />
+        
         <span class="brand-text lg">CAREER<span>TRACKER</span></span>
       </div>
       
       <h2 class="login-title">Tu carrera despega hoy</h2>
-      
       <p class="login-desc">
         Gestiona tus postulaciones y alcanza tu próximo empleo con inteligencia.
       </p>
@@ -20,42 +21,59 @@
           Entrar con Google
         </span>
       </button>
+
     </div>
   </div>
 </template>
 
 <script setup>
-import { auth, googleProvider } from '../firebase'; // Ajusta la importación según tu config de firebase
-import { signInWithPopup } from 'firebase/auth';
+import { onMounted } from 'vue';
+import { auth, googleProvider } from '../firebase'; 
+import { signInWithPopup, onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'vue-router';
 import logoImg from '@/assets/careertracker-logo-no-bkg.png';
 
 const router = useRouter();
 
+// Función manual de Login
 const entrarConGoogle = async () => {
   try {
     await signInWithPopup(auth, googleProvider);
-    // Redirige al dashboard tras el login exitoso
+    // El router push es redundante si tenemos el onAuthStateChanged, pero lo dejamos por seguridad
     router.push('/dashboard');
   } catch (error) {
     console.error("Error al autenticar:", error);
-    alert("Hubo un error al intentar iniciar sesión");
+    // No mostrar alerta si el usuario cerró la ventana a propósito
+    if (error.code !== 'auth/popup-closed-by-user') {
+      alert("Hubo un error al intentar iniciar sesión");
+    }
   }
 };
+
+// DETECTOR AUTOMÁTICO: Si ya estás logueada, te manda directo al Dashboard
+onMounted(() => {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("Usuario detectado, redirigiendo...");
+      router.push('/dashboard');
+    }
+  });
+});
 </script>
 
 <style scoped>
-/* Estilos extraídos y limpiados para el Login */
+/* CONTENEDOR PRINCIPAL */
 .login-container {
   height: 100vh;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0f0f11; /* Fondo oscuro base */
+  background: #0f0f11;
   padding: 20px;
 }
 
+/* TARJETA DE CRISTAL */
 .login-glass {
   background: rgba(18, 18, 18, 0.6);
   backdrop-filter: blur(20px);
@@ -75,28 +93,34 @@ const entrarConGoogle = async () => {
   margin-bottom: 30px;
 }
 
+/* --- AQUÍ ESTÁ EL ARREGLO DEL LOGO GIGANTE --- */
 .app-logo-lg {
-  height: 60px;
-  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.5));
-  margin-bottom: 10px;
-  /* CAMBIO QUIRÚRGICO: Animación de flotado agregada aquí */
+  height: 80px; /* Tamaño controlado, nunca más gigante */
+  width: auto;  /* Mantiene proporción */
+  
+  /* Sombra azul suave, SIN invertir colores (Logo Original) */
+  filter: drop-shadow(0 0 15px rgba(77, 124, 255, 0.3));
+  
+  margin-bottom: 15px;
   animation: float 3s ease-in-out infinite;
 }
 
+/* TEXTO DEGRADADO (Azul Pálido -> Eléctrico) */
 .brand-text {
   font-weight: 800;
   letter-spacing: 2px;
-  color: white;
-}
-
-.brand-text span {
-  color: #22d3ee; /* Accent Cyan */
-}
-
-.brand-text.lg {
   font-size: 1.5rem;
 }
 
+.brand-text span {
+  background: linear-gradient(135deg, #C4D6FF 0%, #4D7CFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 4px 20px rgba(77, 124, 255, 0.3);
+}
+
+/* TÍTULOS Y BOTONES */
 .login-title {
   font-size: 2rem;
   font-weight: 800;
@@ -140,16 +164,9 @@ const entrarConGoogle = async () => {
   background: transparent;
 }
 
-/* CAMBIO QUIRÚRGICO: Definición de la animación float */
 @keyframes float {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px); /* Sube 10 pixeles */
-  }
-  100% {
-    transform: translateY(0px);
-  }
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
 }
 </style>

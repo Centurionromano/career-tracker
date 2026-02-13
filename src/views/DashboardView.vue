@@ -91,11 +91,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { auth, db } from '../firebase';
-import { signOut } from 'firebase/auth'; // Solo importamos signOut, el login ya no vive aquí
+import { signOut } from 'firebase/auth'; 
 import { collection, query, where, onSnapshot, addDoc } from 'firebase/firestore';
 import VacancyCard from '../components/VacancyCard.vue';
 import logoImg from '@/assets/careertracker-logo-no-bkg.png';
-import { useRouter } from 'vue-router'; // Importamos router para redireccionar al salir
+import { useRouter } from 'vue-router'; 
 
 const router = useRouter();
 const usuario = ref(null);
@@ -120,7 +120,7 @@ const cerrarSesion = async () => {
   await signOut(auth);
   usuario.value = null;
   misDatos.value = [];
-  router.push('/'); // Redirige al login (LoginView.vue) al cerrar sesión
+  router.push('/'); 
 };
 
 const guardarVacante = async () => {
@@ -153,14 +153,13 @@ onMounted(() => {
     } else {
       usuario.value = null;
       misDatos.value = [];
-      // Opcional: router.push('/') si quieres forzar la salida si no hay usuario
+      router.push('/'); // Si no hay usuario, regresa al login
     }
   });
 });
 </script>
 
 <style scoped>
-/* Estilos intactos del Dashboard */
 .dashboard-wrapper { min-height: 100vh; width: 100%; }
 .dashboard-container { padding-bottom: 50px; }
 
@@ -177,9 +176,24 @@ onMounted(() => {
 }
 
 .brand { display: flex; align-items: center; gap: 12px; }
-.app-logo { height: 35px; filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3)); }
-.brand-text { font-weight: 800; font-size: 1.1rem; letter-spacing: 2px; }
-.brand-text span { color: var(--accent-cyan); }
+
+/* --- ESTE ES EL CSS QUE CONTROLA EL TAMAÑO PEQUEÑO --- */
+.app-logo { 
+  height: 35px; /* AQUÍ ESTÁ EL SECRETO: 35px */
+  filter: drop-shadow(0 0 8px rgba(77, 124, 255, 0.3)); 
+}
+
+/* TEXTO DEGRADADO (Azul Pálido -> Eléctrico) */
+.brand-text {
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+  background: linear-gradient(to right, #C4D6FF 0%, #4D7CFF 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 8px rgba(77, 124, 255, 0.4));
+}
 
 .user-pill {
   background: rgba(255, 255, 255, 0.05); padding: 4px 4px 4px 4px;
