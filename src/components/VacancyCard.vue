@@ -83,6 +83,7 @@ const closeMenu = (e) => {
   }
 };
 
+
 onMounted(() => window.addEventListener('click', closeMenu));
 onUnmounted(() => window.removeEventListener('click', closeMenu));
 

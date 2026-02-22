@@ -251,7 +251,7 @@ onMounted(() => {
 .hero-subtitle { color: #888; font-size: 1.1rem; margin-top: 5px; }
 
 /* BOTONES */
-.btn-gradient { background: linear-gradient(90deg, #6366f1, #06b6d4); padding: 2px; border-radius: 12px; border: none; cursor: pointer; }
+.btn-gradient { background: linear-gradient(90deg, #6366f1, #06b6d4); padding: 2px; border-radius: 12px; border: none; cursor: pointer; display: flex; overflow: hidden; }
 .btn-content { background: #09090b; color: white; padding: 12px 24px; border-radius: 10px; display: block; font-weight: 700; transition: 0.3s; }
 .btn-gradient:hover .btn-content { background: transparent; }
 
