@@ -16,8 +16,7 @@
         </div>
 
         <div v-if="motivoPrincipal === 'Nunca respondieron'" class="smart-chips-container">
-          <p class="chips-title">💡 Cuando no hay respuesta en la etapa de <strong>{{ etapaActual }}</strong>, usualmente es por una de estas razones:</p>
-          
+         <p class="chips-title"><span class="emoji-grande">🤔</span> Cuando no hay respuesta en la etapa de <strong>{{ etapaActual }}</strong>, usualmente es por una de estas razones:</p>
           <div class="chips-grid">
             <button
               v-for="chip in chipsSugeridos"
@@ -144,9 +143,9 @@ const procesarArchivado = () => {
   border: 1px solid rgba(255,255,255,0.1); 
   padding: 30px; 
   border-radius: 20px; 
-  width: 90%; /* Toma lo que quede del espacio tras el padding de 20px */
+  width: 90%; 
   max-width: 400px; 
-  box-sizing: border-box; /* CIRUGÍA 1: Evita que el padding exterior rompa la pantalla */
+  box-sizing: border-box; 
 }
 
 .rejection-glass { 
@@ -189,7 +188,7 @@ const procesarArchivado = () => {
   border-radius: 8px; 
   transition: 0.3s;
   cursor: pointer;
-  box-sizing: border-box; /* CIRUGÍA 2: Obliga al menú a medir EXACTAMENTE lo mismo que la caja oscura */
+  box-sizing: border-box; 
 }
 
 .rejection-select:focus { 
@@ -263,7 +262,7 @@ const procesarArchivado = () => {
   border-radius: 6px;
   font-size: 0.85rem;
   outline: none;
-  box-sizing: border-box; /* CIRUGÍA 3: Obliga al input a alinearse a la perfección con todo lo demás */
+  box-sizing: border-box; 
 }
 .otro-input:focus {
   border-color: #06b6d4;
@@ -324,5 +323,11 @@ const procesarArchivado = () => {
   .modal-actions {
     flex-direction: column;
   }
+}
+
+.emoji-grande {
+  font-size: 1rem; 
+  vertical-align: middle; 
+  margin-right: 4px; 
 }
 </style>
