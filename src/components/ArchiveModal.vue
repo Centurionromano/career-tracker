@@ -2,7 +2,7 @@
   <div v-if="isOpen" class="modal-overlay" @click.self="cerrarModal">
     <div class="modal-glass rejection-glass">
       <h3 class="rejection-title">Archivar Vacante</h3>
-      <p class="rejection-subtitle">Para futuras métricas, ¿cuál fue el motivo principal de este rechazo?</p>
+      <p class="rejection-subtitle">¿Se detuvo el proceso? ¡Calma, lo mejor está por venir! Ayúdanos a construir tu historial: ¿por qué fue este rechazo?</p>
       
       <form @submit.prevent="procesarArchivado">
         <div class="form-group select-container">

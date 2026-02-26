@@ -12,7 +12,22 @@
       </div>
 
       <div class="header-right">
-        <button class="btn-more" @click.stop="toggleMenu">⋮</button>
+        <div class="action-buttons-group">
+          <button 
+            v-if="!isRejected" 
+            class="btn-archive-direct custom-tooltip" 
+            @click.stop="solicitarArchivo" 
+            data-tooltip="Mover a Historial"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="21 8 21 21 3 21 3 8"></polyline>
+              <rect x="1" y="3" width="22" height="5"></rect>
+              <line x1="10" y1="12" x2="14" y2="12"></line>
+            </svg>
+          </button>
+          
+          <button class="btn-more" @click.stop="toggleMenu">⋮</button>
+        </div>
         
         <transition name="fade">
           <div v-if="isMenuOpen" class="dropdown-menu">
@@ -20,10 +35,6 @@
               <span class="icon-sm">✏️</span> Editar
             </button>
             
-            <button v-if="!isRejected" class="dropdown-item archive-item" @click="solicitarArchivo">
-              <span class="icon-sm">🗄️</span> Rechazar y Archivar
-            </button>
-
             <button v-if="isRejected" class="dropdown-item reactivate-item" @click="solicitarReactivacion">
               <span class="icon-sm">🚀</span> Reactivar Proceso
             </button>
@@ -111,7 +122,6 @@ const cambiarEstatus = (nuevoEstatus) => {
   emit('update-status', props.id, nuevoEstatus);
 };
 
-// Acciones específicas para los botones del menú desplegable
 const solicitarArchivo = () => {
   isMenuOpen.value = false;
   emit('update-status', props.id, 'Rechazada');
@@ -119,7 +129,6 @@ const solicitarArchivo = () => {
 
 const solicitarReactivacion = () => {
   isMenuOpen.value = false;
-  // Reiniciamos el proceso enviándola al estatus inicial
   emit('update-status', props.id, 'Enviada');
 };
 
@@ -201,6 +210,64 @@ const statusColor = computed(() => {
 .role-title { margin: 0; font-size: 1rem; font-weight: 700; color: white; }
 .company-name { margin: 2px 0 0 0; font-size: 0.85rem; color: #9ca3af; }
 
+.action-buttons-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-archive-direct {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #d1d5db;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* Necesario para el tooltip custom */
+}
+
+.btn-archive-direct:hover {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+  transform: scale(1.05);
+}
+
+/* CIRUGÍA CSS: Tooltip Personalizado Inmediato */
+.custom-tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 125%; /* Aparece justo arriba del botón */
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(17, 17, 19, 0.95); /* Cristal súper oscuro */
+  color: #fff;
+  font-size: 1rem; /* Texto más grande */
+  font-weight: 800; /* Negrita */
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(245, 158, 11, 0.6); /* Borde neón ámbar */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(245, 158, 11, 0.2);
+  white-space: nowrap;
+  
+  /* Magia de la aparición instantánea */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.05s ease, visibility 0.05s ease; /* Prácticamente inmediato */
+  pointer-events: none;
+  z-index: 50;
+}
+
+.custom-tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
+}
+
 .btn-more { 
   background: transparent; border: none; color: #6b7280; 
   font-size: 1.5rem; cursor: pointer; padding: 0 5px;
@@ -211,7 +278,7 @@ const statusColor = computed(() => {
   position: absolute; top: 100%; right: 0;
   background: #18181b; border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px; padding: 6px; z-index: 100;
-  min-width: 175px; /* Ligeramente más ancho para acomodar el nuevo texto */
+  min-width: 175px; 
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
 
@@ -225,8 +292,6 @@ const statusColor = computed(() => {
 
 .dropdown-item:hover { background: rgba(255,255,255,0.05); color: white; }
 
-/* Colores condicionales elegantes para las nuevas opciones */
-.archive-item:hover { color: #f59e0b; }
 .reactivate-item:hover { color: #06b6d4; text-shadow: 0 0 8px rgba(6, 182, 212, 0.5); }
 .delete-item:hover { color: #ef4444; }
 

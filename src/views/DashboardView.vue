@@ -23,7 +23,7 @@
         <header class="hero-section">
           <div class="hero-text">
             <h1 class="glitch-title">Hola, {{ nombreCorto }}</h1>
-            <p class="hero-subtitle">Tu próximo salto profesional empieza aquí.</p>
+            <p class="hero-subtitle">Registra vacantes y convierte el feedback en oportunidades.</p>
           </div>
           <button class="btn-gradient" @click="abrirModalNuevo">
             <span class="btn-content">+ Nueva Vacante</span>
@@ -75,8 +75,12 @@
 
         <div v-else-if="misDatos.length > 0 && filtroActivo === 'activas'" class="empty-state-pro">
           <div class="glow-icon">✦</div>
-          <h2>Sin vacantes activas</h2>
-          <p>Registra tu primera postulación para comenzar el seguimiento.</p>
+          <h2 class="welcome-title">¡Todo al día!</h2>
+          <p class="welcome-subtitle">No tienes procesos activos en este momento.</p>
+          <div class="onboarding-box">
+            <p><span>1️⃣</span> Da clic en <strong>+ Nueva Vacante</strong> para registrar tu próxima postulación.</p>
+            <p><span>2️⃣</span> Si el proceso se detiene, usa el icono <strong>🗃️</strong> para <strong>Mover a Historial</strong>.</p>
+          </div>
         </div>
 
         <div v-else-if="misDatos.length > 0 && filtroActivo === 'archivo'" class="empty-state-pro">
@@ -87,8 +91,12 @@
 
         <div v-else class="empty-state-pro">
           <div class="glow-icon">✦</div>
-          <h2>Sin vacantes activas</h2>
-          <p>Registra tu primera postulación para comenzar el seguimiento.</p>
+          <h2 class="welcome-title">¡Bienvenida a tu Carrera Tech! 🚀</h2>
+          <p class="welcome-subtitle">Tu tablero está limpio, ¡es hora de llenarlo de oportunidades!</p>
+          <div class="onboarding-box">
+            <p><span>1️⃣</span> Da clic en <strong>+ Nueva Vacante</strong> arriba para agregar tu primera postulación.</p>
+            <p><span>2️⃣</span> Si el proceso no avanza, usa el icono <strong>📥</strong> en la tarjeta para <strong>Mover a Historial</strong>.</p>
+          </div>
         </div>
       </main>
 
@@ -165,7 +173,6 @@ import {
   collection, query, where, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp 
 } from 'firebase/firestore';
 import VacancyCard from '../components/VacancyCard.vue';
-// INYECCIÓN: Importamos el nuevo componente
 import ArchiveModal from '../components/ArchiveModal.vue';
 import logoImg from '@/assets/careertracker-logo-no-bkg.png';
 import { useRouter } from 'vue-router'; 
@@ -184,7 +191,6 @@ const nuevaVacante = ref({ nombreVacante: '', empresa: '', estatus: 'Enviada', l
 const showRechazoModal = ref(false);
 const idPendienteRechazo = ref(null);
 const datosPendientesGuardar = ref(null);
-// INYECCIÓN: Variable para alimentar la etapa del modal de archivo
 const vacanteParaArchivar = ref(null); 
 
 // --- SISTEMA DE TOASTS ---
@@ -253,11 +259,10 @@ const cancelarRechazo = () => {
   showRechazoModal.value = false;
   idPendienteRechazo.value = null;
   datosPendientesGuardar.value = null;
-  vacanteParaArchivar.value = null; // Limpiamos el componente
+  vacanteParaArchivar.value = null; 
 };
 
 // --- OPERACIONES FIREBASE (CRUD QUIRÚRGICO) ---
-
 const guardarVacante = async () => {
   if (!usuario.value) return;
 
@@ -270,7 +275,6 @@ const guardarVacante = async () => {
     else tipoDetectado = 'otro';
   }
 
-  // Interceptamos si en el form seleccionó "Rechazada"
   if (nuevaVacante.value.estatus === 'Rechazada') {
     datosPendientesGuardar.value = {
       isEditing: isEditing.value,
@@ -284,7 +288,6 @@ const guardarVacante = async () => {
       }
     };
     
-    // Extraemos la etapa anterior para los Smart Chips
     let etapaAnterior = 'Enviada';
     if (isEditing.value && vacanteIdActual.value) {
       const v = misDatos.value.find(x => x.id === vacanteIdActual.value);
@@ -331,12 +334,10 @@ const guardarVacante = async () => {
 const actualizarEstatus = async (id, nuevoEstatus) => {
   if (!id) return;
 
-  // Interceptamos el drop de la tarjeta
   if (nuevoEstatus === 'Rechazada') {
     idPendienteRechazo.value = id;
     datosPendientesGuardar.value = null;
     
-    // Le pasamos al modal la etapa exacta en la que estaba la tarjeta
     const vacante = misDatos.value.find(v => v.id === id);
     vacanteParaArchivar.value = vacante ? { etapa: vacante.estatus } : { etapa: 'Enviada' };
     
@@ -355,14 +356,13 @@ const actualizarEstatus = async (id, nuevoEstatus) => {
   }
 };
 
-// INYECCIÓN QUIRÚRGICA: La función que recibe el objeto limpio del ArchiveModal
 const ejecutarArchivado = async (datosDelModal) => {
   try {
     if (datosPendientesGuardar.value) {
       const payloadConMotivo = { 
         ...datosPendientesGuardar.value.payload, 
         motivoRechazo: datosDelModal.motivoRechazo,
-        detallesRechazo: datosDelModal.detallesRechazo || null // El Bucket
+        detallesRechazo: datosDelModal.detallesRechazo || null 
       };
 
       if (datosPendientesGuardar.value.isEditing) {
@@ -376,7 +376,7 @@ const ejecutarArchivado = async (datosDelModal) => {
       await updateDoc(doc(db, "vacantes", idPendienteRechazo.value), { 
         estatus: 'Rechazada',
         motivoRechazo: datosDelModal.motivoRechazo,
-        detallesRechazo: datosDelModal.detallesRechazo || null // El Bucket
+        detallesRechazo: datosDelModal.detallesRechazo || null 
       });
     }
 
@@ -533,7 +533,7 @@ onMounted(() => {
 /* GRID */
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
 
-/* ESTADOS VACÍOS CON LA ESTRELLA AZUL INTACTA */
+/* ESTADOS VACÍOS Y ONBOARDING (CIRUGÍA CSS) */
 .empty-state-pro { 
   text-align: center; 
   padding: 80px 0; 
@@ -547,6 +547,32 @@ onMounted(() => {
   color: #06b6d4; 
   margin-bottom: 15px; 
   text-shadow: 0 0 20px rgba(6, 182, 212, 0.5); 
+}
+.welcome-title {
+  color: white;
+  margin-bottom: 5px;
+  text-shadow: 0 0 10px rgba(255,255,255,0.2);
+}
+.welcome-subtitle {
+  color: #9ca3af;
+  margin-bottom: 25px;
+  font-size: 1rem;
+}
+.onboarding-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 15px 20px;
+  border-radius: 12px;
+  display: inline-block;
+  text-align: left;
+}
+.onboarding-box p {
+  margin: 10px 0;
+  font-size: 0.95rem;
+  color: #cffafe;
+}
+.onboarding-box strong {
+  color: white;
 }
 
 /* MODALES OSCUROS */
@@ -567,7 +593,7 @@ onMounted(() => {
 .btn-save-modal { flex: 1; }
 .save-content { width: 100%; text-align: center; padding: 10px; }
 
-/* --- TOAST NOTIFICATIONS CYBERPUNK (LA MEJORA QUIRÚRGICA) --- */
+/* --- TOAST NOTIFICATIONS CYBERPUNK --- */
 .toast-notification {
   position: fixed;
   bottom: 30px;
