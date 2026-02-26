@@ -10,6 +10,10 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
+  // 👇 INYECCIÓN QUIRÚRGICA: Obliga a Vite a exponer la IP en tu red local
+  server: {
+    host: true
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
