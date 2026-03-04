@@ -47,7 +47,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { db } from '../firebase'; 
+import { db, auth } from '../firebase'; 
 import { 
   collection, addDoc, query, where, orderBy, onSnapshot, 
   serverTimestamp, doc, deleteDoc, updateDoc 
@@ -59,9 +59,8 @@ const props = defineProps({
 
 const editor = ref(null);
 const historial = ref([]);
-const editId = ref(null); // Para saber qué nota estamos editando
+const editId = ref(null);
 
-// 🛠️ Comandos de Formato
 const ejecutarComando = (comando, valor = null) => {
   if (editor.value) editor.value.focus();
   if (comando === 'formatBlock' && valor === 'pre') {
@@ -72,25 +71,25 @@ const ejecutarComando = (comando, valor = null) => {
   }
 };
 
-// 🔥 GUARDAR O ACTUALIZAR (Lógica dual)
 const guardarEnBitacora = async () => {
   const contenido = editor.value.innerHTML;
   if(!contenido || contenido === '<br>') return;
+
+  if (!auth.currentUser) return;
 
   try {
     const textoTemp = contenido;
     editor.value.innerHTML = ''; 
 
     if (editId.value) {
-      // ACTUALIZAR NOTA EXISTENTE (No toca la fecha)
       await updateDoc(doc(db, "notas", editId.value), {
         texto: textoTemp
       });
       editId.value = null;
     } else {
-      // CREAR NUEVA NOTA
       await addDoc(collection(db, "notas"), {
         vacanteId: props.vacante.id,
+        userId: auth.currentUser.uid, // Aseguramos que se guarde el dueño
         texto: textoTemp,
         fecha: serverTimestamp() 
       });
@@ -100,7 +99,6 @@ const guardarEnBitacora = async () => {
   }
 };
 
-// ✏️ Preparar edición
 const prepararEdicion = (nota) => {
   editor.value.innerHTML = nota.texto;
   editId.value = nota.id;
@@ -112,9 +110,8 @@ const cancelarEdicion = () => {
   editor.value.innerHTML = '';
 };
 
-// 🗑️ Eliminar Nota
 const eliminarNota = async (id) => {
-  if (confirm("¿Seguro que quieres borrar esta nota de la bitácora?")) {
+  if (confirm("¿Seguro que quieres borrar esta nota?")) {
     try {
       await deleteDoc(doc(db, "notas", id));
     } catch (error) {
@@ -123,16 +120,29 @@ const eliminarNota = async (id) => {
   }
 };
 
-// 📡 Sincronización en Tiempo Real
 onMounted(() => {
-  if (!props.vacante?.id) return;
-  const q = query(collection(db, "notas"), where("vacanteId", "==", props.vacante.id), orderBy("fecha", "desc"));
+  if (!props.vacante?.id || !auth.currentUser) return;
+
+  // IMPORTANTE: La consulta debe incluir el userId para que las reglas no la bloqueen
+  const q = query(
+    collection(db, "notas"), 
+    where("vacanteId", "==", props.vacante.id),
+    where("userId", "==", auth.currentUser.uid), // Filtro de seguridad obligatorio
+    orderBy("fecha", "desc")
+  );
+
+  // includeMetadataChanges permite que la UI se actualice con datos locales
   onSnapshot(q, { includeMetadataChanges: true }, (snapshot) => {
     historial.value = snapshot.docs.map(doc => {
       const data = doc.data();
       let fechaVisual = 'Sincronizando...';
-      if (data.fecha) fechaVisual = data.fecha.toDate().toLocaleString();
-      else fechaVisual = new Date().toLocaleString() + ' (Local)';
+      
+      if (data.fecha) {
+        fechaVisual = data.fecha.toDate().toLocaleString();
+      } else if (doc.metadata.hasPendingWrites) {
+        // Si la nota es nueva y aún no tiene fecha del servidor, usamos la hora local
+        fechaVisual = new Date().toLocaleString() + ' (Local)';
+      }
 
       return { id: doc.id, ...data, fechaFormateada: fechaVisual };
     });
@@ -171,21 +181,9 @@ onMounted(() => {
 .timeline::-webkit-scrollbar { width: 4px; }
 .timeline::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
-
-/* Ajuste específico para celulares */
 @media (max-width: 600px) {
-  .item-actions {
-    opacity: 1 !important; /* Que los botones siempre sean visibles en celular */
-    gap: 15px; /* Más espacio entre iconos para no picar el equivocado con el dedo */
-  }
-  
-  .btn-mini-action {
-    padding: 8px; /* Área de contacto más grande para el dedo */
-    font-size: 1.1rem; /* Iconos un poco más grandes */
-  }
-
-  .notes-panel {
-    padding: 15px; /* Un poco más de aire en los bordes */
-  }
+  .item-actions { opacity: 1 !important; gap: 15px; }
+  .btn-mini-action { padding: 8px; font-size: 1.1rem; }
+  .notes-panel { padding: 15px; }
 }
 </style>
