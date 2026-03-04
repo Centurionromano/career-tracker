@@ -70,6 +70,7 @@
             @update-status="actualizarEstatus"
             @delete-vacancy="eliminarVacante"
             @edit-vacancy="abrirEditor"
+            @edit-notes="abrirNotasPanel"
           />
         </section>
 
@@ -147,6 +148,12 @@
         @confirmar-archivo="ejecutarArchivado"
       />
 
+      <NotesModal 
+       v-if="showNotes" 
+      :vacante="vacanteSeleccionadaNotas"
+       @close="showNotes = false" 
+       />
+
       <transition name="toast-slide">
         <div v-if="toast.show" class="toast-notification" :class="toast.type">
           <div class="toast-icon">
@@ -174,6 +181,7 @@ import {
 } from 'firebase/firestore';
 import VacancyCard from '../components/VacancyCard.vue';
 import ArchiveModal from '../components/ArchiveModal.vue';
+import NotesModal from '../components/NotesModal.vue';
 import logoImg from '@/assets/careertracker-logo-no-bkg.png';
 import { useRouter } from 'vue-router'; 
 
@@ -192,6 +200,9 @@ const showRechazoModal = ref(false);
 const idPendienteRechazo = ref(null);
 const datosPendientesGuardar = ref(null);
 const vacanteParaArchivar = ref(null); 
+
+const showNotes = ref(false);
+const vacanteSeleccionadaNotas = ref(null);
 
 // --- SISTEMA DE TOASTS ---
 const toast = ref({ show: false, message: '', type: 'success' });
@@ -253,6 +264,11 @@ const cerrarModal = () => {
   isEditing.value = false;
   vacanteIdActual.value = null;
   nuevaVacante.value = { nombreVacante: '', empresa: '', estatus: 'Enviada', linkCV: '' };
+};
+
+const abrirNotasPanel = (datos) => {
+  vacanteSeleccionadaNotas.value = datos;
+  showNotes.value = true;
 };
 
 const cancelarRechazo = () => {
@@ -650,4 +666,7 @@ onMounted(() => {
   .filter-tabs-glass { width: 100%; }
   .tab-btn { flex: 1; justify-content: center; padding: 12px 16px; }
 }
+
+
+
 </style>

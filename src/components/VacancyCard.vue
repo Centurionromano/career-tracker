@@ -71,10 +71,10 @@
 
     <div class="card-footer">
       <div class="footer-actions">
-        <button class="btn-action" title="Ver Notas/Feedback">
-          <span class="icon">📝</span>
-          <span class="text">Notas</span>
-        </button>
+        <button class="btn-action" @click="abrirNotas" title="Ver Notas/Feedback">
+        <span class="icon">📝</span>
+        <span class="text">Notas</span>
+      </button>
 
         <a v-if="linkCV" :href="linkCV" target="_blank" class="btn-action btn-cv" :class="tipoCV" :title="'Ver CV en ' + tipoCV">
           <svg v-if="tipoCV === 'drive'" class="icon cv-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 87.3 78"><path d="m6.6 66.85 25.3-43.8 25.3 43.8z" fill="#0066da"/><path d="M43.8 23.05 69.1 66.85H18.5z" fill="#e91100"/><path d="M69.1 66.85h17.5L61.3 23.05h-17.5z" fill="#f9ab00"/><path d="M61.3 23.05 43.8 53.35l-17.5-30.3z" fill="#1f8a00"/><path d="M18.5 66.85H.95L26.3 23.05h17.5z" fill="#33a853"/><path d="m43.8 23.05 17.5 30.3H26.3z" fill="#547dbf"/></svg>
@@ -146,7 +146,16 @@ const solicitarEdicion = () => {
     status: props.status,
     linkCV: props.linkCV
   });
+  };
+
+const abrirNotas = () => {
+  emit('edit-notes', { 
+    id: props.id, 
+    title: props.title, 
+    company: props.company 
+  });
 };
+
 
 // --- COMPUTADAS VISUALES ---
 const isRejected = computed(() => props.status === 'Rechazada');
