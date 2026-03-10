@@ -108,23 +108,47 @@
     </div>
   </div>
 
-  <transition name="fade">
-    <div v-if="showTagsModal" class="modal-overlay-local" @click.self="showTagsModal = false">
-      <div class="modal-glass-local">
-        <div class="modal-header-local">
-          <h3>Habilidades y Herramientas</h3>
-          <button class="btn-close-local" @click="showTagsModal = false">×</button>
-        </div>
-        <div class="tags-grid-local">
-          <span v-for="(tag, idx) in tags" :key="idx" class="tag-pill-modal">{{ tag }}</span>
+<Teleport to="body">
+    <transition name="fade">
+      <div v-if="showTagsModal" class="modal-overlay-local" @click.self="showTagsModal = false">
+        <div class="modal-glass-local">
+          <div class="modal-header-local">
+            <h3>Habilidades y Herramientas</h3>
+            <button class="btn-close-local" @click="showTagsModal = false">×</button>
+          </div>
+          <div class="tags-grid-local">
+            <span v-for="(tag, idx) in tags" :key="idx" class="tag-pill-modal">{{ tag }}</span>
+          </div>
         </div>
       </div>
-    </div>
-  </transition>
+    </transition>
+  </Teleport>
+
+  <Teleport to="body">
+    <transition name="fade">
+      <div v-if="showSuccessModal" class="modal-overlay-local success-overlay" @click.self="showSuccessModal = false">
+        <div class="modal-glass-local success-modal-glass"
+             :style="{ 
+               '--theme-color': successConfig.color,
+               '--theme-color-rgb': successConfig.rgb
+             }">
+          <div class="success-content">
+            <div class="success-icon">{{ successConfig.icon }}</div>
+            <h3 class="success-title">{{ successConfig.title }}</h3>
+            <p class="success-message">{{ successConfig.message }}</p>
+            <button class="btn-action btn-success-close" @click="showSuccessModal = false">
+              {{ successConfig.buttonText }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+  </Teleport>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
+import confetti from 'canvas-confetti';
 
 const props = defineProps({
   id: { type: String, required: true },
@@ -140,6 +164,11 @@ const emit = defineEmits(['update-status', 'delete-vacancy', 'edit-vacancy', 'ed
 
 const isMenuOpen = ref(false);
 const showTagsModal = ref(false);
+
+// CIRUGÍA: Variables de estado para el nuevo modal dinámico
+const showSuccessModal = ref(false);
+const successConfig = ref({});
+
 const toggleMenu = () => { isMenuOpen.value = !isMenuOpen.value; };
 
 const closeMenu = (e) => {
@@ -153,8 +182,62 @@ onUnmounted(() => window.removeEventListener('click', closeMenu));
 
 const steps = ['Enviada', 'Entrevista', 'Prueba', 'Oferta'];
 
+// CIRUGÍA: Diccionario de configuración para cada paso del Stepper
+const stepMessages = {
+  'Enviada': {
+    icon: '✉️',
+    title: '¡Postulación lista!',
+    message: 'El primer paso de un gran camino. ¡Mucho éxito!',
+    color: '#6366f1', // Índigo
+    rgb: '99, 102, 241',
+    buttonText: '¡A seguir aplicando!'
+  },
+  'Entrevista': {
+    icon: '🗣️',
+    title: '¡Excelente noticia!',
+    message: 'A prepararse y brillar. ¡Demuestra quién eres!',
+    color: '#f59e0b', // Ámbar
+    rgb: '245, 158, 11',
+    buttonText: '¡Me prepararé!'
+  },
+  'Prueba': {
+    icon: '🎯',
+    title: '¡Siguiente nivel!',
+    message: 'Es el momento perfecto para demostrar todas tus habilidades y talento.',
+    color: '#06b6d4', // Cyan
+    rgb: '6, 182, 212',
+    buttonText: '¡A darlo todo!'
+  },
+  'Oferta': {
+    icon: '🚀',
+    title: '¡Felicidades!',
+    message: '¡Una oferta más al bolsillo!',
+    color: '#10b981', // Esmeralda
+    rgb: '16, 185, 129',
+    buttonText: '¡A celebrar! 🎉'
+  }
+};
+
 const cambiarEstatus = (nuevoEstatus) => {
+  // Emitimos el cambio para que Firebase guarde la información (no rompemos lógica)
   emit('update-status', props.id, nuevoEstatus);
+
+  // CIRUGÍA: Inyectamos el contenido dinámico al modal según el estatus
+  if (stepMessages[nuevoEstatus]) {
+    successConfig.value = stepMessages[nuevoEstatus];
+    showSuccessModal.value = true;
+
+    // Lanzamos el confeti EXCLUSIVAMENTE si es una Oferta
+    if (nuevoEstatus === 'Oferta') {
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#06b6d4', '#8b5cf6', '#ec4899'],
+        zIndex: 10000 
+      });
+    }
+  }
 };
 
 const solicitarArchivo = () => {
@@ -194,7 +277,6 @@ const abrirNotas = () => {
 
 const isRejected = computed(() => props.status === 'Rechazada');
 
-// CIRUGÍA: Variables computadas para mostrar máximo 2 tags
 const visibleTags = computed(() => {
   if (!props.tags) return [];
   return props.tags.slice(0, 2);
@@ -263,15 +345,9 @@ const statusColor = computed(() => {
               inset 0 0 4px rgba(72, 187, 120, 0.1);
 }
 
-/* ------------------------------------------------------------------
-   CIRUGÍA: EL CRISTAL AHUMADO ORIGINAL (Cero ruido, 100% Minimalismo)
-------------------------------------------------------------------- */
 .card-glass {
-  /* Fondo oscuro translúcido que deja adivinar el fondo de la app */
   background: rgba(200, 220, 255, 0.10);
-  backdrop-filter: blur(12px); /* El verdadero efecto Glassmorphism */
-  
-  /* Borde ultra discreto, apenas un reflejo de luz (15% de opacidad) */
+  backdrop-filter: blur(12px); 
   border: 1px solid rgba(139, 92, 246, 0.15); 
   border-radius: 16px;
   padding: 20px;
@@ -280,20 +356,14 @@ const statusColor = computed(() => {
   flex-direction: column; 
   gap: 20px;
   height: 100%; 
-  
-  /* Sombra oscura para separar la tarjeta del fondo, sin emitir luz */
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); 
   transition: all 0.3s ease;
 }
 
 .card-glass:hover { 
   transform: translateY(-4px); 
-  
-  /* Al pasar el mouse, solo se aclara sutilmente el fondo y el borde */
   background: rgba(255, 255, 255, 0.03); 
   border-color: rgba(255, 255, 255, 0.15); 
-  
-  /* La sombra se hace un poco más profunda, no más brillante */
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
 }
 
@@ -324,18 +394,6 @@ const statusColor = computed(() => {
 .role-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: white; line-height: 1.3; }
 .company-name { margin: 4px 0 0 0; font-size: 0.85rem; color: #9ca3af; line-height: 1.3; }
 
-/* ------------------------------------------------------------------
-   CIRUGÍA: NUEVO ESTILO DE TAGS (Minimalista y Discreto)
-   El antiguo efecto Cyberpunk Neón está aquí guardado para que
-   lo rescates y uses en la Action Bar del dashboard principal:
-   
-   .tag-pill-old {
-     background: linear-gradient(#111113, #111113) padding-box, linear-gradient(90deg, #06b6d4, #8b5cf6) border-box;
-     border: 1px solid transparent;
-     color: #e0e7ff;
-     box-shadow: 0 0 10px rgba(139, 92, 246, 0.2); 
-   }
-------------------------------------------------------------------- */
 .tags-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: -8px; }
 
 .tag-pill {
@@ -393,16 +451,10 @@ const statusColor = computed(() => {
 .footer-actions { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }
 .btn-action { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.08); padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; text-decoration: none; transition: all 0.2s ease; color: #d1d5db; font-size: 0.85rem; font-weight: 600; }
 .btn-action:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255,255,255,0.2); color: white; }
-.btn-cv.drive:hover { background: rgba(52, 168, 83, 0.15); border-color: #34a853; color: #34a853; }
-.btn-cv.linkedin:hover { background: rgba(0, 119, 181, 0.15); border-color: #0077b5; color: #0077b5; }
-.btn-cv.pdf:hover { background: rgba(255, 77, 77, 0.15); border-color: #ff4d4d; color: #ff4d4d; }
-.cv-svg { width: 18px; height: 18px; }
+
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s, transform 0.2s; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(-10px); }
 
-/* ------------------------------------------------------------------
-   CIRUGÍA: MODAL DE SKILLS (Responsivo y Cyberpunk)
-------------------------------------------------------------------- */
 .modal-overlay-local { 
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
   background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); 
@@ -421,11 +473,9 @@ const statusColor = computed(() => {
 .btn-close-local { background: transparent; border: none; color: #9ca3af; font-size: 1.8rem; cursor: pointer; line-height: 1; transition: 0.2s; padding: 0; }
 .btn-close-local:hover { color: #f43f5e; text-shadow: 0 0 8px rgba(244, 63, 94, 0.5); }
 .tags-grid-local { display: flex; flex-wrap: wrap; gap: 10px; max-height: 60vh; overflow-y: auto; padding-bottom: 5px;}
-/* Scrollbar ultra delgado para el modal */
 .tags-grid-local::-webkit-scrollbar { height: 4px; width: 4px; }
 .tags-grid-local::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 10px; }
 
-/* Las tags dentro del modal: elegantes y clickeables visualmente */
 .tag-pill-modal { 
   background: rgba(255, 255, 255, 0.03); 
   border: 1px solid rgba(255, 255, 255, 0.1); 
@@ -439,35 +489,9 @@ const statusColor = computed(() => {
   box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
 }
 
-/* ------------------------------------------------------------------
-   CIRUGÍA: MICRO-BOTÓN DE HABILIDADES (Bajo la empresa)
-------------------------------------------------------------------- */
 .btn-skills-sm {
-  margin-top: 8px;
-  background: rgba(56, 189, 248, 0.08); /* Azul cielo súper translúcido */
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  color: #38bdf8;
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  border-radius: 12px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content; /* Responsivo: Solo ocupa lo que necesita */
-  transition: all 0.3s ease;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-/* ------------------------------------------------------------------
-   CIRUGÍA: MICRO-BOTÓN DE HABILIDADES (Bajo la empresa - Corregido)
-------------------------------------------------------------------- */
-.btn-skills-sm {
-  /* Cero márgenes manuales. El 'gap: 20px' de la tarjeta hace la matemática perfecta arriba y abajo */
   margin: 0;
-  align-self: flex-start; /* Lo ancla al margen izquierdo maestro de la tarjeta */
-  
+  align-self: flex-start; 
   background: rgba(56, 189, 248, 0.08); 
   border: 1px solid rgba(56, 189, 248, 0.2);
   color: #38bdf8;
@@ -482,14 +506,81 @@ const statusColor = computed(() => {
   font-weight: 600;
   letter-spacing: 0.5px;
 }
-
 .btn-skills-sm:hover {
   background: rgba(56, 189, 248, 0.15);
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
   transform: translateY(-1px);
 }
+.icon-skills { opacity: 0.9; }
 
-.icon-skills {
-  opacity: 0.9;
+/* ------------------------------------------------------------------
+   CIRUGÍA: MODAL DINÁMICO CON VARIABLES CSS (Glassmorphism Inteligente)
+------------------------------------------------------------------- */
+.success-overlay {
+  z-index: 9999; 
+}
+
+/* Usamos var() para heredar el color dinámico inyectado desde Vue */
+.success-modal-glass {
+  border-color: rgba(var(--theme-color-rgb), 0.4) !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(var(--theme-color-rgb), 0.15) !important;
+  padding: 35px 25px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.success-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.success-icon {
+  font-size: 3.5rem;
+  margin-bottom: 5px;
+  animation: float-bounce 2.5s infinite ease-in-out;
+}
+
+.success-title {
+  margin: 0;
+  color: var(--theme-color);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-shadow: 0 0 15px rgba(var(--theme-color-rgb), 0.5);
+}
+
+.success-message {
+  color: #e2e8f0;
+  font-size: 1rem;
+  margin: 0 0 15px 0;
+  font-weight: 500;
+}
+
+.btn-success-close {
+  background: rgba(var(--theme-color-rgb), 0.15);
+  border-color: rgba(var(--theme-color-rgb), 0.4);
+  color: var(--theme-color);
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.btn-success-close:hover {
+  background: rgba(var(--theme-color-rgb), 0.25);
+  border-color: var(--theme-color);
+  color: white;
+  box-shadow: 0 0 20px rgba(var(--theme-color-rgb), 0.3);
+  transform: translateY(-2px);
+}
+
+@keyframes float-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
 }
 </style>
