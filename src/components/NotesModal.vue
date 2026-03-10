@@ -212,7 +212,8 @@ onMounted(() => {
 }
 
 /* CABECERA */
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+/* CIRUGÍA: flex-shrink: 0 para proteger de compresión */
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; }
 .cyber-title { margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: 0.5px; }
 
 .icon-terminal {
@@ -225,15 +226,18 @@ onMounted(() => {
 .btn-close:hover { color: #f43f5e; text-shadow: 0 0 8px rgba(239, 68, 68, 0.5); }
 
 /* TOOLBAR GLASSMORPHISM */
-.rich-text-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.03); padding: 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); }
+/* CIRUGÍA: flex-shrink: 0 */
+.rich-text-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; background: rgba(255, 255, 255, 0.03); padding: 8px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); flex-shrink: 0; }
 .rich-text-toolbar button { background: transparent; border: 1px solid rgba(255, 255, 255, 0.1); color: #cbd5e1; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s ease; }
 .rich-text-toolbar button:hover { background: rgba(56, 189, 248, 0.1); border-color: #38bdf8; color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
 
 /* EDITOR TERMINAL */
+/* CIRUGÍA: flex-shrink: 0 */
 .notes-editor { 
   width: 100%; min-height: 120px; background: rgba(0,0,0,0.5); color: #e2e8f0; 
   border: 1px solid rgba(56, 189, 248, 0.2); 
   border-radius: 8px; padding: 15px; margin-bottom: 15px; outline: none; text-align: left; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; line-height: 1.5; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); transition: all 0.3s ease; box-sizing: border-box; 
+  flex-shrink: 0;
 }
 .notes-editor:focus { 
   border-color: #38bdf8; 
@@ -242,7 +246,8 @@ onMounted(() => {
 .notes-editor:empty:before { content: attr(placeholder); color: #475569; font-style: italic; }
 
 /* BOTONES DE ACCIÓN */
-.editor-actions { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; }
+/* CIRUGÍA: flex-shrink: 0 */
+.editor-actions { display: flex; gap: 12px; align-items: center; margin-bottom: 10px; flex-shrink: 0; }
 .btn-cyber-submit { 
   background: rgba(56, 189, 248, 0.05); 
   color: #38bdf8; 
@@ -262,12 +267,14 @@ onMounted(() => {
 .btn-cancel-edit:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,0.05); }
 
 /* SEPARADOR CIBERNÉTICO */
-.divider-container { position: relative; margin: 25px 0 15px 0; text-align: center; }
+/* CIRUGÍA: flex-shrink: 0 */
+.divider-container { position: relative; margin: 25px 0 15px 0; text-align: center; flex-shrink: 0; }
 .cyber-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.3), transparent); width: 100%; position: absolute; top: 50%; z-index: 1; }
 .divider-text { background: #111113; padding: 0 15px; color: #64748b; font-size: 0.75rem; font-weight: 800; letter-spacing: 2px; position: relative; z-index: 2; }
 
 /* TIMELINE (HILO DE CONEXIÓN) */
-.timeline { overflow-y: auto; padding-right: 10px; flex: 1; }
+/* CIRUGÍA: min-height: 0; añadido para forzar el scroll interno */
+.timeline { overflow-y: auto; padding-right: 10px; flex: 1; min-height: 0; }
 .timeline::-webkit-scrollbar { width: 4px; }
 .timeline::-webkit-scrollbar-track { background: transparent; }
 .timeline::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 10px; }
