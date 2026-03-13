@@ -25,10 +25,14 @@
             <h1 class="glitch-title">Hola, {{ nombreCorto }}</h1>
             <p class="hero-subtitle">Registra vacantes y convierte el feedback en oportunidades.</p>
           </div>
-          <button class="btn-gradient" @click="abrirModalNuevo">
+          <button class="btn-gradient hide-mobile" @click="abrirModalNuevo">
             <span class="btn-content">+ Nueva Vacante</span>
           </button>
         </header>
+
+        <button class="fab-mobile show-mobile-flex" @click="abrirModalNuevo" title="Nueva Vacante">
+          <span class="fab-content">+</span>
+        </button>
 
         <div v-if="misDatos.length > 0" class="action-bar-container">
           <div class="action-bar-glass">
@@ -875,5 +879,58 @@ onMounted(() => {
   
   .search-wrapper { flex: 1; min-width: 0; width: auto; }
   .search-wrapper.focused { width: auto; }
+}
+
+/* --- ESTILOS DEL BOTÓN FLOTANTE (FAB) --- */
+.fab-mobile {
+  position: fixed;
+  bottom: 30px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(90deg, #6366f1, #06b6d4);
+  padding: 2px; /* Grosor del borde brillante */
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  z-index: 2000;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
+  display: none; /* Oculto por defecto */
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fab-content {
+  background: #09090b;
+  color: white;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 400;
+  transition: 0.3s;
+}
+
+.fab-mobile:hover {
+  transform: scale(1.1) translateY(-5px);
+}
+
+.fab-mobile:hover .fab-content {
+  background: transparent; /* Efecto lleno al hacer hover */
+}
+
+/* --- CONTROL DE VISIBILIDAD --- */
+.show-mobile-flex { display: none; }
+
+@media (max-width: 768px) {
+  /* Ocultamos el botón del hero */
+  .hide-mobile { display: none !important; }
+  
+  /* Mostramos el FAB */
+  .show-mobile-flex {
+    display: flex !important;
+  }
 }
 </style>
